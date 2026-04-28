@@ -1,5 +1,5 @@
 import {
-  //  GithubAuthProvider,
+  GithubAuthProvider,
   GoogleAuthProvider,
   getAuth,
   signInWithPopup,
@@ -13,7 +13,8 @@ const Login = () => {
 
   const auth = getAuth(app);
   const googleProvider = new GoogleAuthProvider();
-  // const githubProvider = new GithubAuthProvider();
+  const githubProvider = new GithubAuthProvider();
+  githubProvider.addScope("user:email");
 
   const handleGoogleSignIn = async () => {
     try {
@@ -35,23 +36,29 @@ const Login = () => {
     }
   };
 
-  // const handleGithubSignIn = () => {
-  //   signInWithPopup(auth, githubProvider)
-  //     .then((result) => {
-  //       const loggedInUser = result.user;
-  //       console.log(loggedInUser);
-  //       setUser(loggedInUser);
-  //     })
-  //     .catch((error) => {
-  //       console.log("error", error.message);
-  //     });
-  // };
+  const handleGithubSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, githubProvider);
+      const loggedInUser = result.user;
+      console.log("User:", loggedInUser);
+
+      const token = await loggedInUser.getIdToken(true);
+      console.log("Token:", token);
+
+      localStorage.setItem("token", token);
+
+      setUser(loggedInUser);
+    } catch (error) {
+      console.log("error", error.message);
+    }
+  };
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       console.log("User Signed out successfully!");
       setUser(null);
+      localStorage.removeItem("token");
     } catch (error) {
       console.log("error", error.message);
     }
@@ -103,7 +110,7 @@ const Login = () => {
       ) : (
         <div>
           <button onClick={handleGoogleSignIn}>Google Login</button>
-          {/* <button onClick={handleGithubSignIn}>Github Login</button> */}
+          {<button onClick={handleGithubSignIn}>Github Login</button>}
         </div>
       )}
       {user && (
